@@ -50,7 +50,7 @@ with open(args.file) as csv_file:
             date = row[1]
             total = 0
             for sample in range(samples):
-                total += float(row[2 + sample]) * 1000
+                total += int(float(row[2 + sample]) * 1000)
             dailyTotals[meter][date] = total
 
         elif rowid == "400":
@@ -68,4 +68,6 @@ with open(args.file) as csv_file:
             date = ""
             continue
         
-    print('Processed %d lines.' % (line), file=sys.stderr)
+    if args.debug:
+        print('Processed %d lines.' % (line), file=sys.stderr)
+        print(dailyTotals)
