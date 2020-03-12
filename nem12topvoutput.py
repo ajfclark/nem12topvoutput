@@ -51,7 +51,7 @@ with open(args.file) as csv_file:
 			total = 0
 			for sample in range(samples):
 				total += int(float(row[2 + sample]) * 1000)
-			dailyTotals[meter][date] = total
+			dailyTotals[date][meter] = total
 
 		elif rowid == "400":
 			if args.debug:
@@ -67,8 +67,20 @@ with open(args.file) as csv_file:
 			meter = ""
 			date = ""
 			continue
-		
+
 	print('Processed %d lines.' % (line), file=sys.stderr)
-	for meter in dailyTotals:
-		for date in dailyTotals[meter]:
-			print("%s %s %d" % (meter, date, dailyTotals[meter][date]))
+
+	# See https://pvoutput.org/help.html#api-addoutput for the positional parameters
+	for date in sorted(dailyTotals):
+		try:
+			exportwh = dailyTotals[date]['B1']
+		except KeyError:
+			exportwh = 0
+
+		try:
+			importwh = dailyTotals[date]['E1']
+		except KeyError:
+			importwh = 0
+
+		data = ("%s,,%d,,,,,,,%d,,,," % (date, exportwh, importwh))
+		print(data)
