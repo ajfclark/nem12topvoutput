@@ -8,6 +8,9 @@ parser.add_argument("-f", "--file", help="The file to process", required=True)
 parser.add_argument("-i", "--sysid", help="System ID to apply changes to", required=True)
 parser.add_argument("-a", "--apikey", help="API key to use", required=True)
 parser.add_argument("-d", "--debug", action="store_true", help="Debugging output")
+parser.add_argument("-s", "--start", type=int, help="Start date in yyyymmdd format")
+parser.add_argument("-e", "--end", type=int, help="End date in yyyymmdd format")
+
 args = parser.parse_args()
 
 dailyTotals = defaultdict(dict)
@@ -47,7 +50,7 @@ with open(args.file) as csv_file:
 			rowtype = row[samples + 2]
 			if rowtype != "A" and rowtype != "V":
 				print("Unhandled 300 type on line %d: %s, %s" % (line, rowtype, row), file=sys.stderr)
-			date = row[1]
+			date = int(row[1])
 			total = 0
 			for sample in range(samples):
 				total += int(float(row[2 + sample]) * 1000)
@@ -70,8 +73,13 @@ with open(args.file) as csv_file:
 
 	print('Processed %d lines.' % (line), file=sys.stderr)
 
-	# See https://pvoutput.org/help.html#api-addoutput for the positional parameters
 	for date in sorted(dailyTotals):
+		if(args.start):
+			if date < args.start:
+				continue
+		if(args.end):
+			if date > args.end:
+				continue
 		try:
 			exportwh = dailyTotals[date]['B1']
 		except KeyError:
@@ -82,5 +90,6 @@ with open(args.file) as csv_file:
 		except KeyError:
 			importwh = 0
 
+		# See https://pvoutput.org/help.html#api-addoutput for the positional parameters
 		data = ("%s,,%d,,,,,,,%d,,,," % (date, exportwh, importwh))
 		print(data)
