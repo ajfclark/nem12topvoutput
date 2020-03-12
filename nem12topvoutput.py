@@ -111,4 +111,4 @@ with open(args.file) as csv_file:
 			params={"data" : "%s,,%d,,,,,,,%d,,,," % (date, exportwh, importwh)},
 			headers={"X-Pvoutput-Apikey" : args.apikey, "X-Pvoutput-SystemId" : args.sysid}
 		)
-		print(response)
+		print("%s: %s" % (date, response))
