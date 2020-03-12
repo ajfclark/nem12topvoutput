@@ -1,12 +1,16 @@
 #!/usr/bin/python3
 
 import csv, sys, argparse
+from collections import defaultdict
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-f", "--file", help="The file to process", required=True)
 parser.add_argument("-i", "--sysid", help="System ID to apply changes to", required=True)
 parser.add_argument("-a", "--apikey", help="API key to use", required=True)
+parser.add_argument("-d", "--debug", action="store_true", help="Debugging output")
 args = parser.parse_args()
+
+dailyTotals = defaultdict(dict)
 
 with open(args.file) as csv_file:
     csv_reader = csv.reader(csv_file, delimiter=',')
@@ -23,6 +27,8 @@ with open(args.file) as csv_file:
             continue
         
         if rowid == "200":
+            if args.debug:
+                print("200: %s" % row, file=sys.stderr)
             meter = row[3]
             interval = row[8]
             if interval == "30":
@@ -32,8 +38,12 @@ with open(args.file) as csv_file:
             else:
                 print("Invalid interval on line %d: %s, %s" % (line, interval, row), file=sys.stderr)
                 break
+            continue
+
 
         elif rowid == "300":
+            if args.debug:
+                print("300: %s" % row, file=sys.stderr)
             rowtype = row[samples + 2]
             if rowtype != "A" and rowtype != "V":
                 print("Unhandled 300 type on line %d: %s, %s" % (line, rowtype, row), file=sys.stderr)
@@ -41,18 +51,21 @@ with open(args.file) as csv_file:
             total = 0
             for sample in range(samples):
                 total += float(row[2 + sample]) * 1000
-            print("%s\t%s\t%d" % (meter, date, total))
+            dailyTotals[meter][date] = total
 
         elif rowid == "400":
-            #print("400: %s" % row, file=sys.stderr)
+            if args.debug:
+                print("400: %s" % row, file=sys.stderr)
             pass
 
         elif rowid == "500":
-            #print("500: %s" % row, file=sys.stderr)
+            if args.debug:
+                print("500: %s" % row, file=sys.stderr)
             pass
-        
+
         elif rowid == "900":
             meter = ""
             date = ""
-
+            continue
+        
     print('Processed %d lines.' % (line), file=sys.stderr)
