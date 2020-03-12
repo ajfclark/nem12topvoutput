@@ -10,6 +10,8 @@ parser.add_argument("-a", "--apikey", help="API key to use", required=True)
 parser.add_argument("-d", "--debug", action="store_true", help="Debugging output")
 parser.add_argument("-s", "--start", type=int, help="Start date in yyyymmdd format")
 parser.add_argument("-e", "--end", type=int, help="End date in yyyymmdd format")
+parser.add_argument("-ip", "--importpeak", help="Import peak register", required=True)
+parser.add_argument("-er", "--export", help="Export register", required=True)
 
 args = parser.parse_args()
 
@@ -81,12 +83,12 @@ with open(args.file) as csv_file:
 			if date > args.end:
 				continue
 		try:
-			exportwh = dailyTotals[date]['B1']
+			exportwh = dailyTotals[date][args.export]
 		except KeyError:
 			exportwh = 0
 
 		try:
-			importwh = dailyTotals[date]['E1']
+			importwh = dailyTotals[date][args.importpeak]
 		except KeyError:
 			importwh = 0
 
