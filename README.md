@@ -15,3 +15,10 @@ The system ID too?
 The file to process should be on the command line.
 
 date range?
+
+
+---
+
+Actually, I might need a config file? I need to map the meter ID to the system ID and the registers to the relevant values to be supplied.
+
+e.g. B1 is my Export, E1 is my Import
