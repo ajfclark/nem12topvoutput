@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-import csv, sys, argparse
+import csv, sys, argparse, requests
 from collections import defaultdict
 
 parser = argparse.ArgumentParser()
@@ -20,8 +20,10 @@ dailyTotals = defaultdict(dict)
 with open(args.file) as csv_file:
 	csv_reader = csv.reader(csv_file, delimiter=',')
 	line = 0
+	processed = 0
 	for row in csv_reader:
 		line += 1
+
 		if row == []:
 			continue
 
@@ -29,7 +31,7 @@ with open(args.file) as csv_file:
 			rowid = row[0]
 		except IndexError:
 			print("Invalid csv on line %d: %s" % (line, row), file=sys.stderr)
-			continue
+			break
 		
 		if rowid == "200":
 			if args.debug:
@@ -42,46 +44,58 @@ with open(args.file) as csv_file:
 				samples = 96
 			else:
 				print("Invalid interval on line %d: %s, %s" % (line, interval, row), file=sys.stderr)
+				sys.exit(1)
 				break
+			processed += 1
 			continue
 
-
 		elif rowid == "300":
+			date = int(row[1])
+			if (args.start and date < args.start) or (args.end and date > args.end):
+				skip = True
+				continue
+			else:
+				skip = False
+	
 			if args.debug:
 				print("300: %s" % row, file=sys.stderr)
+
 			rowtype = row[samples + 2]
 			if rowtype != "A" and rowtype != "V":
 				print("Unhandled 300 type on line %d: %s, %s" % (line, rowtype, row), file=sys.stderr)
-			date = int(row[1])
+				sys.exit(1)
+				break
+
 			total = 0
 			for sample in range(samples):
 				total += int(float(row[2 + sample]) * 1000)
 			dailyTotals[date][meter] = total
-
-		elif rowid == "400":
-			if args.debug:
-				print("400: %s" % row, file=sys.stderr)
-			pass
-
-		elif rowid == "500":
-			if args.debug:
-				print("500: %s" % row, file=sys.stderr)
-			pass
-
-		elif rowid == "900":
-			meter = ""
-			date = ""
+			processed += 1
 			continue
 
-	print('Processed %d lines.' % (line), file=sys.stderr)
+		elif rowid == "400" and not skip:
+			if args.debug:
+				print("400: %s" % row, file=sys.stderr)
+			processed += 1
+			continue
+
+		elif rowid == "500" and not skip:
+			if args.debug:
+				print("500: %s" % row, file=sys.stderr)
+			processed += 1
+			continue
+
+		elif rowid == "900":
+			if args.debug:
+				print("900: %s" % row, file=sys.stderr)
+			meter = ""
+			date = ""
+			processed += 1
+			continue
+
+	print('Processed %d lines.' % (processed), file=sys.stderr)
 
 	for date in sorted(dailyTotals):
-		if(args.start):
-			if date < args.start:
-				continue
-		if(args.end):
-			if date > args.end:
-				continue
 		try:
 			exportwh = dailyTotals[date][args.export]
 		except KeyError:
@@ -93,5 +107,8 @@ with open(args.file) as csv_file:
 			importwh = 0
 
 		# See https://pvoutput.org/help.html#api-addoutput for the positional parameters
-		data = ("%s,,%d,,,,,,,%d,,,," % (date, exportwh, importwh))
-		print(data)
+		response = requests.post("https://pvoutput.org/service/r2/addoutput.jsp", 
+			params={"data" : "%s,,%d,,,,,,,%d,,,," % (date, exportwh, importwh)},
+			headers={"X-Pvoutput-Apikey" : args.apikey, "X-Pvoutput-SystemId" : args.sysid}
+		)
+		print(response)
