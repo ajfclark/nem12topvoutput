@@ -95,6 +95,7 @@ with open(args.file) as csv_file:
 
 	print('Processed %d lines.' % (processed), file=sys.stderr)
 
+	data = []
 	for date in sorted(dailyTotals):
 		try:
 			exportwh = dailyTotals[date][args.export]
@@ -105,10 +106,43 @@ with open(args.file) as csv_file:
 			importwh = dailyTotals[date][args.importpeak]
 		except KeyError:
 			importwh = 0
+		day = [ str(date),
+			'', # gen
+			str(exportwh),
+			'', # used
+			'', # peakp
+			'', # peakt
+			'', # cond
+			'', # min
+			'', # max
+			'', # comment
+			str(importwh),
+			'', # importoff
+			'' # importshoulder
+		]
+
+		print(",".join(day))
+		sys.exit()
+		#data.append("%d,,%d,,,,,,,%d,,,," % (date, exportwh, importwh));
+		data.append(",".join(day))
+
+	dataLen = len(data)
+	batchSize = 30
+	batchNum = int(dataLen / batchSize)
+	if dataLen % batchSize != 0:
+		batchNum += 1
+
+	batches = []
+	for offset in range(1, batchNum + 1):
+		end = offset * batchSize 
+		start = end - batchSize 
+		if end > dataLen:
+			end = dataLen 
+		batches.append(';'.join(data[start : end]))
 
 		# See https://pvoutput.org/help.html#api-addoutput for the positional parameters
-		response = requests.post("https://pvoutput.org/service/r2/addoutput.jsp", 
-			params={"data" : "%s,,%d,,,,,,,%d,,,," % (date, exportwh, importwh)},
+		response = requests.post("https://pvoutput.org/service/r2/addbatchoutput.jsp", 
+			params={"data" : ";".join(data[start : end])},
 			headers={"X-Pvoutput-Apikey" : args.apikey, "X-Pvoutput-SystemId" : args.sysid}
 		)
-		print(response)
+		print("%d: %s" % (date, response))
