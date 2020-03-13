@@ -15,3 +15,12 @@
 * `-s START, --start START`: Start date in yyyymmdd format
 * `-e END, --end END`: End date in yyyymmdd format
 * `-d, --debug`: Debugging output
+
+## Example:
+I've downloaded my NEM12 file from Powercor on the 2020-03-13 and want to load in all the data in the file from the 2020-03-10 onwards:
+```
+$ ./nem12topvoutput.py -f 20180313_20200313_POWERCOR_DETAILED.csv -s 20200310 -ip E1 -er B1 -a [apikey] -i 61698
+Processed 8 lines.
+20200310: <Response [200]>
+20200311: <Response [200]>
+```
