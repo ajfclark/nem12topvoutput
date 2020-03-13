@@ -1,5 +1,9 @@
 # NEM12toPVoutput
 
+This is a quick utility to take teh import and export kWh figures from a NEM12 file and feed them in to PVOutput for dates that already have generation figures present.
+
+NEM12 specification used: https://www.aemo.com.au/-/media/Files/Electricity/NEM/Retail_and_Metering/Metering-Procedures/2018/MDFF-Specification-NEM12--NEM13-v106.pdf
+
 ## Usage:
 
 `nem12topvoutput.py [-h] -f FILE -i SYSID -a APIKEY -ip IMPORTPEAK -er EXPORT [-d] [-s START] [-e END]`
