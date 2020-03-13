@@ -1,24 +1,30 @@
 # NEM12toPVoutput
 
-What do I want to do?
+usage: nem12topvoutput.py [-h] -f FILE -i SYSID -a APIKEY [-d] [-s START]
+						  [-e END] -ip IMPORTPEAK -er EXPORT
 
-The simple one is to upload the daily export amounts.
+## Required switches:
+### -f FILE, --file FILE
+The NEM12 csv file to process
 
-The slightly more complex idea is to upload the half hourly updates.
+### -i SYSID, --sysid SYSID
+System ID to apply changes to
 
-There's a bulk uploader too that I should look at.
+### -a APIKEY, --apikey APIKEY
+API key to use
 
-Need to get the API key from a config file or the command line.
+### -ip IMPORTPEAK, --importpeak IMPORTPEAK
+Import peak register (E1)
 
-The system ID too?
+### -er EXPORT, --export EXPORT
+Export register (B1)
 
-The file to process should be on the command line.
+## Optional switches:
+### -s START, --start START
+Start date in yyyymmdd format
 
-date range?
+### -e END, --end END
+End date in yyyymmdd format
 
-
----
-
-Actually, I might need a config file? I need to map the meter ID to the system ID and the registers to the relevant values to be supplied.
-
-e.g. B1 is my Export, E1 is my Import
+### -d, --debug
+Debugging output
