@@ -106,9 +106,14 @@ with open(args.file) as csv_file:
 		except KeyError:
 			importwh = 0
 
-		# See https://pvoutput.org/help.html#api-addoutput for the positional parameters
-		response = requests.post("https://pvoutput.org/service/r2/addoutput.jsp", 
-			params={"data" : "%s,,%d,,,,,,,%d,,,," % (date, exportwh, importwh)},
-			headers={"X-Pvoutput-Apikey" : args.apikey, "X-Pvoutput-SystemId" : args.sysid}
-		)
-		print("%s: %s" % (date, response))
+		try:
+			# See https://pvoutput.org/help.html#api-addoutput for the positional parameters
+			response = requests.post("https://pvoutput.org/service/r2/addoutput.jsp", 
+				params={"data" : "%s,,%d,,,,,,,%d,,,," % (date, exportwh, importwh)},
+				headers={"X-Pvoutput-Apikey" : args.apikey, "X-Pvoutput-SystemId" : args.sysid}
+			)
+			response.raise_for_status()
+			print("%s: %s" % (date, response.text))
+		except (requests.exceptions.HTTPError) as e:
+			print("%s: %s" % (date, response.text))
+			raise e
